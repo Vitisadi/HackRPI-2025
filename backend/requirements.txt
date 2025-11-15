@@ -1,0 +1,7 @@
+flask
+boto3
+face_recognition
+insightface
+opencv-python
+python-dotenv
+numpy
