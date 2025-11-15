@@ -1,0 +1,13 @@
+=== Transcript Summary ===
+
+[0.00s–3.80s]: ... our recording, so here you can see Devise's recording video, right?
+[4.04s–8.00s]: I had to like click this button in the back, so...
+[8.52s–13.00s]: It's up to us how much we want, but we...
+[13.92s–18.82s]: Our plan should be for it to be less than like 40 seconds,
+[19.48s–22.76s]: so the AI processing thing happens faster.
+[23.86s–25.22s]: Wait, Tim, say something.
+[26.16s–28.02s]: Hello, I'm Tim.
+[28.02s–30.56s]: Today we're going to go play basketball.
+[31.88s–32.70s]: Say something, Shimo.
+[33.18s–35.74s]: Hello, I'm Shimo. I'm just hanging out here.
+[36.02s–38.48s]: Okay, I'm going to stop our recording.
