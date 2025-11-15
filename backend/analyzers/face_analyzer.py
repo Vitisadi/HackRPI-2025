@@ -18,7 +18,7 @@ TEMP_DIR = DB_ROOT / "temp_crops"
 
 FACE_MATCH_THRESHOLD = 0.25   # higher = more lenient
 FRAME_INTERVAL_SEC = 2      # analyze every ~1.5 seconds
-MIN_VALID_FRAMES = 3          # minimum clear frames to proceed
+MIN_VALID_FRAMES = 2          # minimum clear frames to proceed
 
 # === Setup folders ===
 FACES_DIR.mkdir(parents=True, exist_ok=True)
