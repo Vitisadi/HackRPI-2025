@@ -108,6 +108,7 @@ export default function PeopleScreen({ onOpenConversation }) {
             id: Date.now().toString(),
             question,
             answer: res.data?.answer,
+            suggestion: res.data?.suggestion,
             match: res.data?.match,
          });
          setAssistantInput('');
@@ -221,54 +222,101 @@ export default function PeopleScreen({ onOpenConversation }) {
                            key={latestInteraction.id}
                            style={styles.assistantResponse}
                         >
-                           <Text style={styles.assistantLabel}>You</Text>
-                           <Text style={styles.assistantQuestion}>
-                              {latestInteraction.question}
-                           </Text>
-                           <Text style={styles.assistantLabel}>Assistant</Text>
-                           {latestInteraction.match?.excerpt?.length ? (
-                              <View style={styles.assistantExcerpt}>
-                                 {latestInteraction.match.excerpt.map(
-                                    (turn, idx) => (
-                                       <Text
-                                          key={`${latestInteraction.id}-modal-${idx}`}
-                                          style={[
-                                             styles.assistantExcerptLine,
-                                             turn.is_highlight &&
-                                                styles.assistantExcerptHighlight,
-                                          ]}
-                                       >
-                                          <Text
-                                             style={
-                                                styles.assistantExcerptSpeaker
-                                             }
-                                          >
-                                             {turn.speaker}:{' '}
-                                          </Text>
-                                          {turn.text}
+                           {(() => {
+                              const hasExcerpt =
+                                 Array.isArray(
+                                    latestInteraction.match?.excerpt
+                                 ) &&
+                                 latestInteraction.match.excerpt.length > 0;
+                              const canOpenProfile =
+                                 hasExcerpt &&
+                                 latestInteraction.match?.name &&
+                                 typeof latestInteraction.match?.timestamp ===
+                                    'number';
+                              return (
+                                 <>
+                                    <Text style={styles.assistantLabel}>
+                                       You
+                                    </Text>
+                                    <Text style={styles.assistantQuestion}>
+                                       {latestInteraction.question}
+                                    </Text>
+                                    <Text style={styles.assistantLabel}>
+                                       Assistant
+                                    </Text>
+                                    {latestInteraction.answer ? (
+                                       <Text style={styles.assistantAnswer}>
+                                          {latestInteraction.answer}
                                        </Text>
-                                    )
-                                 )}
-                              </View>
-                           ) : (
-                              <Text style={styles.assistantAnswer}>
-                                 {latestInteraction.answer}
-                              </Text>
-                           )}
-                           {latestInteraction.match?.name ? (
-                              <TouchableOpacity
-                                 style={styles.assistantLink}
-                                 onPress={() => {
-                                    setAssistantModalVisible(false);
-                                    handleOpenProfile(latestInteraction.match);
-                                 }}
-                              >
-                                 <Text style={styles.assistantLinkText}>
-                                    View {latestInteraction.match.name}’s
-                                    profile
-                                 </Text>
-                              </TouchableOpacity>
-                           ) : null}
+                                    ) : null}
+                                    {latestInteraction.suggestion ? (
+                                       <Text style={styles.assistantSuggestion}>
+                                          {latestInteraction.suggestion}
+                                       </Text>
+                                    ) : null}
+                                    {hasExcerpt ? (
+                                       <View style={styles.assistantExcerpt}>
+                                          {latestInteraction.match.excerpt.map(
+                                             (turn, idx) => (
+                                                <Text
+                                                   key={`${latestInteraction.id}-modal-${idx}`}
+                                                   style={[
+                                                      styles.assistantExcerptLine,
+                                                      turn.is_highlight &&
+                                                         styles.assistantExcerptHighlight,
+                                                   ]}
+                                                >
+                                                   <Text
+                                                      style={
+                                                         styles.assistantExcerptSpeaker
+                                                      }
+                                                   >
+                                                      {turn.speaker}:{' '}
+                                                   </Text>
+                                                   {turn.text}
+                                                </Text>
+                                             )
+                                          )}
+                                       </View>
+                                    ) : null}
+                                    {canOpenProfile ? (
+                                       <TouchableOpacity
+                                          style={styles.assistantLink}
+                                          onPress={() => {
+                                             setAssistantModalVisible(false);
+                                             handleOpenProfile(
+                                                latestInteraction.match
+                                             );
+                                          }}
+                                       >
+                                          <View
+                                             style={styles.assistantLinkContent}
+                                          >
+                                             {latestInteraction.match
+                                                ?.image_url ? (
+                                                <Image
+                                                   source={{
+                                                      uri: latestInteraction
+                                                         .match?.image_url,
+                                                   }}
+                                                   style={
+                                                      styles.assistantLinkImage
+                                                   }
+                                                />
+                                             ) : null}
+                                             <Text
+                                                style={styles.assistantLinkText}
+                                             >
+                                                View{' '}
+                                                {latestInteraction.match.name}’s
+                                                profile
+                                             </Text>
+                                          </View>
+                                       </TouchableOpacity>
+                                    ) : null}
+                                 </>
+                              );
+                           })()}
                         </View>
                      ) : (
                         <Text style={styles.assistantPlaceholder}>
@@ -379,6 +427,11 @@ const styles = StyleSheet.create({
       color: '#222',
       marginBottom: 6,
    },
+   assistantSuggestion: {
+      fontSize: 14,
+      color: '#555',
+      marginBottom: 8,
+   },
    assistantExcerpt: {
       marginBottom: 6,
       paddingVertical: 6,
@@ -406,6 +459,18 @@ const styles = StyleSheet.create({
    assistantLink: {
       alignSelf: 'flex-start',
       paddingVertical: 6,
+   },
+   assistantLinkContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+   },
+   assistantLinkImage: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: '#ddd',
    },
    assistantLinkText: {
       color: '#0072ff',

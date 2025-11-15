@@ -71,10 +71,12 @@ export default function ConversationScreen({
          : '';
       const isHighlightedEntry =
          Boolean(highlightTimestamp) && item.timestamp === highlightTimestamp;
-      const messageHighlightIndex =
-         isHighlightedEntry && Number.isInteger(highlightIndex)
-            ? highlightIndex
-            : -1;
+      const highlightSet =
+         isHighlightedEntry && Array.isArray(item.highlight_indices)
+            ? new Set(item.highlight_indices)
+            : isHighlightedEntry && Number.isInteger(highlightIndex)
+            ? new Set([highlightIndex])
+            : new Set();
 
       return (
          <View
@@ -91,7 +93,7 @@ export default function ConversationScreen({
                            style={[
                               styles.msg,
                               isHighlightedEntry &&
-                                 i === messageHighlightIndex &&
+                                 highlightSet.has(i) &&
                                  styles.msgHighlight,
                            ]}
                         >
@@ -108,7 +110,7 @@ export default function ConversationScreen({
                            style={[
                               styles.msg,
                               isHighlightedEntry &&
-                                 i === messageHighlightIndex &&
+                                 highlightSet.has(i) &&
                                  styles.msgHighlight,
                            ]}
                         >
@@ -123,7 +125,7 @@ export default function ConversationScreen({
                         style={[
                            styles.msg,
                            isHighlightedEntry &&
-                              i === messageHighlightIndex &&
+                              highlightSet.has(i) &&
                               styles.msgHighlight,
                         ]}
                      >

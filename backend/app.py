@@ -11,6 +11,7 @@ from analyzers.transcript_analyzer import analyze_transcript
 from analyzers.enroll_face import enroll
 from analyzers.transcript_analyzer import whisper_model
 from analyzers.face_analyzer import face_app
+from google import genai
 
 print("✅ All AI models preloaded (Whisper + InsightFace). Ready to process requests.")
 
@@ -19,6 +20,8 @@ from flask import Flask, jsonify, send_from_directory, request
 
 load_dotenv()
 BASE_URL = os.getenv("BASE_URL")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+gemini_client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 
 # === PATH SETUP ===
 BASE_DIR = Path(__file__).resolve().parent
@@ -99,31 +102,28 @@ def assistant_people():
         })
 
     top_match = matches[0]
-    for match in matches:
-        match["excerpt"] = _conversation_excerpt(match, window=1)
+    gemini_data = summarize_with_gemini(question, top_match)
+    answer = (gemini_data or {}).get("answer", "").strip() if gemini_data else ""
+    suggestion = (gemini_data or {}).get("suggestion", "").strip() if gemini_data else ""
+    excerpt_from_ai = (gemini_data or {}).get("excerpt") if gemini_data else None
+    top_match["excerpt"] = build_contextual_excerpt(top_match, excerpt_from_ai, window=1)
 
-    excerpt_lines = [
-        f"{turn['speaker']}: {turn['text']}"
-        for turn in (top_match.get("excerpt") or [])
-        if turn.get("text")
-    ]
-
-    if excerpt_lines:
-        answer = "\n".join(excerpt_lines)
-    elif top_match.get("snippet"):
-        answer = (
-            f"{top_match['name']} ({top_match['speaker']}) mentioned "
-            f"\"{top_match['snippet']}\"."
-        )
-    else:
-        answer = (
-            f"I could not find anything specific, but the latest note for "
-            f"{top_match['name']} didn't include a transcript."
-        )
+    if not answer:
+        if top_match.get("snippet"):
+            answer = (
+                f"{top_match['name']} ({top_match['speaker']}) mentioned "
+                f"\"{top_match['snippet']}\"."
+            )
+        else:
+            answer = (
+                f"I could not find anything specific, but the latest note for "
+                f"{top_match['name']} didn't include a transcript."
+            )
 
     return jsonify({
         "question": question,
         "answer": answer,
+        "suggestion": suggestion,
         "match": top_match,
         "matches": matches
     })
@@ -277,7 +277,11 @@ def save_conversation(data):
         except Exception:
             print(f"⚠️ Could not parse old file for {name}, resetting it.")
 
-    entry = {"timestamp": int(time.time()), "conversation": data.get("conversation", [])}
+        entry = {
+            "timestamp": int(time.time()),
+            "conversation": data.get("conversation", []),
+            "keywords": data.get("keywords", []),
+        }
     existing.append(entry)
     path.write_text(json.dumps(existing, indent=2), encoding="utf-8")
     print(f"💾 Conversation history updated for: {name}")
@@ -301,17 +305,85 @@ def _collect_person_assets():
         }
     return assets
 
-def _conversation_excerpt(match, window=1):
+def summarize_with_gemini(question, match):
+    if not gemini_client or not GEMINI_API_KEY:
+        return None
+
     conversation = match.get("conversation") or []
-    highlight_index = match.get("highlight_index", -1)
     if not conversation:
+        return None
+
+    convo_tail = conversation[-24:]
+    convo_text = "\n".join(
+        f"{turn.get('speaker', 'Unknown')}: {turn.get('text', '').strip()}"
+        for turn in convo_tail
+        if turn.get("text")
+    )
+
+    prompt = f"""
+You help answer questions about past conversations between two people.
+Return only valid JSON in this format (no markdown):
+{{
+  "answer": "<concise response>",
+  "excerpt": [
+    {{"speaker": "...", "text": "..."}}
+  ],
+  "suggestion": "<optional follow-up suggestion or empty string>"
+}}
+
+Rules:
+- Excerpt lines must be copied verbatim from the conversation log.
+- Provide at most 3 excerpt lines, including context before/after the key line when possible.
+- If there is not enough information to answer, set answer exactly to "Not enough information." and return an empty excerpt array.
+- When you cannot answer, use "suggestion" to recommend what the user could ask instead (e.g., mention related topics present in the log).
+- Do not invent facts not present in the conversation log.
+
+Question: "{question}"
+
+Conversation log:
+{convo_text}
+"""
+    print(prompt)
+    try:
+        response = gemini_client.models.generate_content(
+            model="gemini-2.0-flash-lite", contents=prompt
+        )
+        print(response.text)
+        raw = (response.text or "").strip()
+        if raw.startswith("```"):
+            raw = raw.strip("`").replace("json", "").strip()
+        parsed = json.loads(raw)
+        if "suggestion" not in parsed:
+            parsed["suggestion"] = ""
+        return parsed
+    except Exception as exc:
+        print(f"⚠️ Gemini summary failed: {exc}")
+        return None
+
+def build_contextual_excerpt(match, ai_excerpt, window=1):
+    conversation = match.get("conversation") or []
+    if not conversation or not isinstance(ai_excerpt, list) or not ai_excerpt:
+        match["highlight_index"] = -1
         return []
 
-    if highlight_index < 0 or highlight_index >= len(conversation):
-        highlight_index = len(conversation) - 1
+    highlight_indices = set()
+    for entry in ai_excerpt:
+        text_norm = (entry or {}).get("text", "").strip().lower()
+        if not text_norm:
+            continue
+        for idx, turn in enumerate(conversation):
+            if (turn.get("text") or "").strip().lower() == text_norm:
+                highlight_indices.add(idx)
+                break
 
-    start = max(0, highlight_index - window)
-    end = min(len(conversation), highlight_index + window + 1)
+    if highlight_indices:
+        center = min(highlight_indices)
+    else:
+        match["highlight_index"] = -1
+        return []
+
+    start = max(0, center - window)
+    end = min(len(conversation), center + window + 1)
 
     excerpt = []
     for idx in range(start, end):
@@ -319,8 +391,11 @@ def _conversation_excerpt(match, window=1):
         excerpt.append({
             "speaker": turn.get("speaker", "Unknown"),
             "text": turn.get("text", ""),
-            "is_highlight": idx == highlight_index,
+            "is_highlight": idx in highlight_indices
         })
+
+    match["highlight_index"] = center
+    match["highlight_indices"] = sorted(highlight_indices)
     return excerpt
 
 def find_relevant_people(question):
@@ -335,6 +410,9 @@ def find_relevant_people(question):
             entries = json.loads(conv_file.read_text(encoding="utf-8"))
         except Exception:
             continue
+
+        name_lower = name.lower()
+        name_boost = 5 if name_lower in tokens else 0
 
         best_entry = None
         best_score = -1
@@ -379,6 +457,9 @@ def find_relevant_people(question):
                 entry_score = len(conversation)
                 highlight_idx = len(conversation) - 1
 
+            if entry_score > 0:
+                entry_score += name_boost
+
             if entry_score > best_score or (entry_score == best_score and ts > best_timestamp):
                 best_entry = entry
                 best_score = entry_score
@@ -417,6 +498,7 @@ def find_relevant_people(question):
             "score": max(best_score, 0),
             "conversation": conversation_block,
             "highlight_index": best_highlight_idx,
+            "highlight_indices": [best_highlight_idx] if best_highlight_idx >= 0 else [],
             "profile_url": profile_url,
             "image_url": person_asset.get("image_url"),
         })
