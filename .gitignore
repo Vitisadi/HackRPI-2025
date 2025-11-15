@@ -83,3 +83,8 @@ faces_db/temp_crops/**
 !faces_db/
 !faces_db/faces/
 !faces_db/temp_crops/
+/backend/analyzers/__pycache__
+/backend/analyzers/__pycache__
+backend/analyzers/google_key.json
+backend/temp_audio.wav
+*.pyc
