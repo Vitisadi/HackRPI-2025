@@ -444,12 +444,7 @@ export default function RetroConversationScreen({
                            </View>
                         </>
                      )}
-                     <Text style={styles.profileName}>{name}</Text>
-                     {displayHeadline ? (
-                        <Text style={styles.profileHeadline}>
-                           {displayHeadline}
-                        </Text>
-                     ) : null}
+
                      {linkedinUrl ? (
                         <TouchableOpacity
                            onPress={() => Linking.openURL(linkedinUrl)}
