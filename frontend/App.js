@@ -19,6 +19,7 @@ import RetroPeopleScreen from './screens/RetroPeopleScreen';
 import RetroUploadScreen from './screens/RetroUploadScreen';
 import RetroConversationScreen from './screens/RetroConversationScreen';
 import RetroHighlightsScreen from './screens/RetroHighlightsScreen';
+import { retroPalette, retroFonts } from './styles/retroTheme';
 
 const AGREEMENT_STORAGE_KEY = 'upload_agreement_accepted_v1';
 
@@ -218,11 +219,13 @@ export default function App() {
             )}
 
             {/* Bottom Navigation */}
-            <View style={styles.navBar}>
+            <View style={[styles.navBar, isRetroTheme && styles.navBarRetro]}>
                <TouchableOpacity
                   style={[
                      styles.navItem,
                      activeTab === 'home' && styles.navItemActive,
+                     isRetroTheme && styles.navItemRetro,
+                     isRetroTheme && activeTab === 'home' && styles.navItemActiveRetro,
                   ]}
                   onPress={() => {
                      setActiveConversation(null);
@@ -233,6 +236,8 @@ export default function App() {
                      style={[
                         styles.navText,
                         activeTab === 'home' && styles.navTextActive,
+                        isRetroTheme && styles.navTextRetro,
+                        isRetroTheme && activeTab === 'home' && styles.navTextActiveRetro,
                      ]}
                   >
                      Home
@@ -244,6 +249,9 @@ export default function App() {
                      styles.navItem,
                      styles.navSeparator,
                      activeTab === 'upload' && styles.navItemActive,
+                     isRetroTheme && styles.navItemRetro,
+                     isRetroTheme && styles.navSeparatorRetro,
+                     isRetroTheme && activeTab === 'upload' && styles.navItemActiveRetro,
                   ]}
                   onPress={() => {
                      setActiveConversation(null);
@@ -254,6 +262,8 @@ export default function App() {
                      style={[
                         styles.navText,
                         activeTab === 'upload' && styles.navTextActive,
+                        isRetroTheme && styles.navTextRetro,
+                        isRetroTheme && activeTab === 'upload' && styles.navTextActiveRetro,
                      ]}
                   >
                      Upload
@@ -265,6 +275,9 @@ export default function App() {
                      styles.navItem,
                      styles.navSeparator,
                      activeTab === 'highlights' && styles.navItemActive,
+                     isRetroTheme && styles.navItemRetro,
+                     isRetroTheme && styles.navSeparatorRetro,
+                     isRetroTheme && activeTab === 'highlights' && styles.navItemActiveRetro,
                   ]}
                   onPress={() => {
                      setActiveConversation(null);
@@ -275,6 +288,8 @@ export default function App() {
                      style={[
                         styles.navText,
                         activeTab === 'highlights' && styles.navTextActive,
+                        isRetroTheme && styles.navTextRetro,
+                        isRetroTheme && activeTab === 'highlights' && styles.navTextActiveRetro,
                      ]}
                   >
                      Highlights
@@ -286,6 +301,9 @@ export default function App() {
                      styles.navItem,
                      styles.navSeparator,
                      activeTab === 'memory' && styles.navItemActive,
+                     isRetroTheme && styles.navItemRetro,
+                     isRetroTheme && styles.navSeparatorRetro,
+                     isRetroTheme && activeTab === 'memory' && styles.navItemActiveRetro,
                   ]}
                   onPress={() => {
                      setActiveConversation(null);
@@ -296,6 +314,8 @@ export default function App() {
                      style={[
                         styles.navText,
                         activeTab === 'memory' && styles.navTextActive,
+                        isRetroTheme && styles.navTextRetro,
+                        isRetroTheme && activeTab === 'memory' && styles.navTextActiveRetro,
                      ]}
                   >
                      Memory
@@ -424,6 +444,33 @@ const styles = StyleSheet.create({
    navTextActive: {
       color: '#007AFF',
       fontWeight: '600',
+   },
+   navBarRetro: {
+      backgroundColor: retroPalette.menuGray,
+      borderTopWidth: 3,
+      borderTopColor: retroPalette.outline,
+      height: 70,
+   },
+   navItemRetro: {
+      backgroundColor: retroPalette.menuGray,
+   },
+   navSeparatorRetro: {
+      borderLeftWidth: 2,
+      borderLeftColor: retroPalette.outline,
+   },
+   navItemActiveRetro: {
+      backgroundColor: retroPalette.warmSand,
+      borderTopWidth: 4,
+      borderTopColor: retroPalette.violet,
+   },
+   navTextRetro: {
+      fontFamily: retroFonts.base,
+      color: retroPalette.menuText,
+      fontSize: 15,
+   },
+   navTextActiveRetro: {
+      color: retroPalette.violet,
+      fontWeight: '700',
    },
    themeToggleButton: {
       marginTop: 32,
