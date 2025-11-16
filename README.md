@@ -2,7 +2,7 @@
 
 ReCall is a lightweight memory assistant that turns raw conversations into something you can actually browse. We pair an Expo-based mobile app (“Home”, “Memory”, “Highlights”, “Upload”) with a Flask backend that handles video uploads, face recognition, transcript analysis, and highlight detection.
 
-![Pitch Slide](./presentation/poster.jpg)
+![Pitch Slide](./presentation/hackathon_poster.jpg)
 
 ## Quick Tour
 
