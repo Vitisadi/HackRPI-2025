@@ -116,12 +116,28 @@ def assistant_people():
     question = (payload.get("question") or "").strip()
     if not question:
         return jsonify({"error": "Please provide a question for the assistant."}), 400
+    target_name = (
+        payload.get("name")
+        or payload.get("person")
+        or payload.get("person_key")
+        or ""
+    ).strip()
+    normalized_target = target_name.lower() if target_name else None
 
-    matches = find_relevant_people(question)
+    matches = find_relevant_people(question, normalized_target)
+    if normalized_target:
+        matches = [
+            match for match in matches if match.get("name", "").lower() == normalized_target
+        ]
     if not matches:
+        no_data_msg = (
+            f"I could not find any saved conversations for {target_name}."
+            if normalized_target
+            else "I could not find any saved conversations yet."
+        )
         return jsonify({
             "question": question,
-            "answer": "I could not find any saved conversations yet.",
+            "answer": no_data_msg,
             "matches": []
         })
 
@@ -573,14 +589,20 @@ def build_contextual_excerpt(match, ai_excerpt, window=1):
     match["highlight_indices"] = sorted(highlight_indices)
     return excerpt
 
-def find_relevant_people(question):
-    """Search every saved conversation for the entry that best answers the question."""
+def find_relevant_people(question, target_name=None):
+    """Search saved conversations for entries that best answer the question.
+
+    If target_name is provided, limit the search to that person only.
+    """
     tokens = _tokenize_text(question)
     assets = _collect_person_assets()
     matches = []
+    normalized_target = target_name.lower() if target_name else None
 
     for conv_file in MEMORY_DIR.glob("*.json"):
         name = conv_file.stem
+        if normalized_target and name.lower() != normalized_target:
+            continue
         try:
             entries = json.loads(conv_file.read_text(encoding="utf-8"))
         except Exception:
