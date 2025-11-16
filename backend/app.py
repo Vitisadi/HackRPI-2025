@@ -459,7 +459,7 @@ def rename_person():
             old_conv.rename(new_conv)
             print(f"✅ Renamed conversation: {old_conv} -> {new_conv}")
 
-        # Normalize speaker labels inside conversation entries from old_name -> new_name
+        # Normalize speaker labels AND text content inside conversation entries from old_name -> new_name
         conv_path = new_conv if new_conv.exists() else (old_conv if old_conv.exists() else None)
         if conv_path and conv_path.exists():
             try:
@@ -470,13 +470,28 @@ def rename_person():
                         convo = entry.get("conversation")
                         if isinstance(convo, list):
                             for turn in convo:
+                                # Update speaker field
                                 spk = turn.get("speaker") if isinstance(turn, dict) else None
                                 if isinstance(spk, str) and spk.strip().lower() == old_name.strip().lower():
                                     turn["speaker"] = new_name
                                     changed = True
+                                
+                                # Update text content - replace old name with new name (case-insensitive)
+                                text = turn.get("text") if isinstance(turn, dict) else None
+                                if isinstance(text, str):
+                                    # Use regex for case-insensitive replacement, preserving original case pattern
+                                    new_text = re.sub(
+                                        r'\b' + re.escape(old_name) + r'\b',
+                                        new_name,
+                                        text,
+                                        flags=re.IGNORECASE
+                                    )
+                                    if new_text != text:
+                                        turn["text"] = new_text
+                                        changed = True
                 if changed:
                     conv_path.write_text(json.dumps(entries, indent=2), encoding="utf-8")
-                    print(f"✅ Updated speaker labels in {conv_path.name}: {old_name} -> {new_name}")
+                    print(f"✅ Updated speaker labels and text content in {conv_path.name}: {old_name} -> {new_name}")
             except Exception as cx:
                 print(f"⚠️ Could not normalize speakers in {conv_path.name}: {cx}")
         
