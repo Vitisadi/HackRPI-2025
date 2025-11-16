@@ -173,13 +173,10 @@ export default function HomeScreen({ onOpenConversation, onNavigateTab }) {
          (sum, person) => sum + (person.conversationWeight || 0),
          0
       );
-       const baseSize = Math.max(48, width * 0.12);
-       const maxSize = Math.min(120, width * 0.28);
-       const placedNodes = [];
-      const spacingPadding = Math.max(
-         36,
-         Math.min(width, graphHeight) * 0.08
-      );
+      const baseSize = Math.max(48, width * 0.12);
+      const maxSize = Math.min(120, width * 0.28);
+      const placedNodes = [];
+      const spacingPadding = Math.max(36, Math.min(width, graphHeight) * 0.08);
       const labelBuffer = 52;
 
       return sorted.map((node, index) => {
@@ -222,7 +219,10 @@ export default function HomeScreen({ onOpenConversation, onNavigateTab }) {
          const minX = spacingPadding + size / 2;
          const maxX = Math.max(minX, width - spacingPadding - size / 2);
          const minY = spacingPadding + size / 2;
-         const maxY = Math.max(minY, graphHeight - spacingPadding - size / 2 - labelBuffer);
+         const maxY = Math.max(
+            minY,
+            graphHeight - spacingPadding - size / 2 - labelBuffer
+         );
          const availableWidth = Math.max(0, maxX - minX);
          const availableHeight = Math.max(0, maxY - minY);
 
@@ -237,8 +237,7 @@ export default function HomeScreen({ onOpenConversation, onNavigateTab }) {
                const dx = candidateX - other.x;
                const dy = candidateY - other.y;
                const distance = Math.sqrt(dx * dx + dy * dy);
-               const minDistance =
-                  (size + other.size) / 2 + spacingPadding;
+               const minDistance = (size + other.size) / 2 + spacingPadding;
                return distance < minDistance;
             });
             if (!overlaps) {
@@ -343,7 +342,9 @@ export default function HomeScreen({ onOpenConversation, onNavigateTab }) {
                         activeOpacity={0.9}
                         onPress={action.onPress}
                      >
-                        <Text style={styles.quickActionIcon}>{action.icon}</Text>
+                        <Text style={styles.quickActionIcon}>
+                           {action.icon}
+                        </Text>
                         <View style={styles.quickActionCopy}>
                            <Text style={styles.quickActionLabel}>
                               {action.label}
@@ -445,7 +446,9 @@ export default function HomeScreen({ onOpenConversation, onNavigateTab }) {
                   </Text>
                ) : (
                   <>
-                     <View style={[styles.graphWrapper, { height: graphHeight }]}>
+                     <View
+                        style={[styles.graphWrapper, { height: graphHeight }]}
+                     >
                         {preparedNodes.map((node) => (
                            <View
                               key={node.name}

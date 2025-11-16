@@ -14,6 +14,11 @@ import PeopleScreen from './screens/PeopleScreen';
 import UploadScreen from './screens/UploadScreen';
 import ConversationScreen from './screens/ConversationScreen';
 import HighlightsScreen from './screens/HighlightsScreen';
+import RetroHomeScreen from './screens/RetroHomeScreen';
+import RetroPeopleScreen from './screens/RetroPeopleScreen';
+import RetroUploadScreen from './screens/RetroUploadScreen';
+import RetroConversationScreen from './screens/RetroConversationScreen';
+import RetroHighlightsScreen from './screens/RetroHighlightsScreen';
 
 const AGREEMENT_STORAGE_KEY = 'upload_agreement_accepted_v1';
 
@@ -23,6 +28,7 @@ export default function App() {
    const [hasAcceptedAgreement, setHasAcceptedAgreement] = useState(false);
    const [isCheckingAgreement, setIsCheckingAgreement] = useState(true);
    const [agreementChecked, setAgreementChecked] = useState(false);
+   const [isRetroTheme, setIsRetroTheme] = useState(false);
 
    useEffect(() => {
       const checkAgreementStatus = async () => {
@@ -79,11 +85,15 @@ export default function App() {
       setActiveTab(tab);
    }, []);
 
+   const handleToggleTheme = () => {
+      setIsRetroTheme((prev) => !prev);
+   };
+
    if (isCheckingAgreement) {
       return (
          <SafeAreaView style={{ flex: 1 }}>
             <View style={styles.agreementContainer}>
-               <ActivityIndicator size="large" color="#007AFF" />
+               <ActivityIndicator size='large' color='#007AFF' />
                <Text style={styles.agreementLoadingText}>Preparing app…</Text>
             </View>
          </SafeAreaView>
@@ -104,7 +114,7 @@ export default function App() {
                <TouchableOpacity
                   style={styles.checkboxRow}
                   onPress={() => setAgreementChecked((prev) => !prev)}
-                  accessibilityRole="checkbox"
+                  accessibilityRole='checkbox'
                   accessibilityState={{ checked: agreementChecked }}
                >
                   <View
@@ -145,34 +155,66 @@ export default function App() {
       <SafeAreaView style={{ flex: 1 }}>
          <View style={styles.container}>
             {activeConversation ? (
-                <ConversationScreen
-                   name={activeConversation.name}
-                   avatarUrl={activeConversation.avatarUrl}
-                   headline={activeConversation.headline}
-                   highlightTimestamp={activeConversation.highlightTimestamp}
-                   highlightIndex={activeConversation.highlightIndex}
-                   onBack={() => setActiveConversation(null)}
-                />
+               <ConversationScreen
+                  name={activeConversation.name}
+                  avatarUrl={activeConversation.avatarUrl}
+                  headline={activeConversation.headline}
+                  highlightTimestamp={activeConversation.highlightTimestamp}
+                  highlightIndex={activeConversation.highlightIndex}
+                  onBack={() => setActiveConversation(null)}
+               />
             ) : (
                <>
-                  {activeTab === 'home' && (
-                     <HomeScreen
-                        onOpenConversation={handleOpenConversation}
-                        onNavigateTab={handleNavigateTab}
-                     />
-                  )}
-                  {activeTab === 'upload' && <UploadScreen />}
-                  {activeTab === 'memory' && (
-                     <PeopleScreen
-                        onOpenConversation={handleOpenConversation}
-                     />
-                  )}
-                  {activeTab === 'highlights' && (
-                     <HighlightsScreen
-                        onOpenConversation={handleOpenConversation}
-                     />
-                  )}
+                  {activeTab === 'home' &&
+                     (isRetroTheme ? (
+                        <RetroHomeScreen
+                           onOpenConversation={handleOpenConversation}
+                           onNavigateTab={handleNavigateTab}
+                        />
+                     ) : (
+                        <HomeScreen
+                           onOpenConversation={handleOpenConversation}
+                           onNavigateTab={handleNavigateTab}
+                        />
+                     ))}
+                  {activeTab === 'upload' &&
+                     (isRetroTheme ? <RetroUploadScreen /> : <UploadScreen />)}
+                  {activeTab === 'memory' &&
+                     (isRetroTheme ? (
+                        <RetroPeopleScreen
+                           onOpenConversation={handleOpenConversation}
+                        />
+                     ) : (
+                        <PeopleScreen
+                           onOpenConversation={handleOpenConversation}
+                        />
+                     ))}
+                  {activeTab === 'highlights' &&
+                     (isRetroTheme ? (
+                        <RetroHighlightsScreen
+                           onOpenConversation={handleOpenConversation}
+                        />
+                     ) : (
+                        <HighlightsScreen
+                           onOpenConversation={handleOpenConversation}
+                        />
+                     ))}
                </>
+            )}
+
+            {!activeConversation && activeTab === 'home' && (
+               <TouchableOpacity
+                  style={[
+                     styles.themeToggleButton,
+                     isRetroTheme && styles.themeToggleButtonRetro,
+                  ]}
+                  onPress={handleToggleTheme}
+                  accessibilityRole='button'
+               >
+                  <Text style={styles.themeToggleText}>
+                     {isRetroTheme ? 'Switch to Main' : 'Switch to Retro'}
+                  </Text>
+               </TouchableOpacity>
             )}
 
             {/* Bottom Navigation */}
@@ -222,27 +264,6 @@ export default function App() {
                   style={[
                      styles.navItem,
                      styles.navSeparator,
-                     activeTab === 'memory' && styles.navItemActive,
-                  ]}
-                  onPress={() => {
-                     setActiveConversation(null);
-                     setActiveTab('memory');
-                  }}
-               >
-                  <Text
-                     style={[
-                        styles.navText,
-                        activeTab === 'memory' && styles.navTextActive,
-                     ]}
-                     >
-                     Memory
-                  </Text>
-               </TouchableOpacity>
-
-               <TouchableOpacity
-                  style={[
-                     styles.navItem,
-                     styles.navSeparator,
                      activeTab === 'highlights' && styles.navItemActive,
                   ]}
                   onPress={() => {
@@ -257,6 +278,27 @@ export default function App() {
                      ]}
                   >
                      Highlights
+                  </Text>
+               </TouchableOpacity>
+
+               <TouchableOpacity
+                  style={[
+                     styles.navItem,
+                     styles.navSeparator,
+                     activeTab === 'memory' && styles.navItemActive,
+                  ]}
+                  onPress={() => {
+                     setActiveConversation(null);
+                     setActiveTab('memory');
+                  }}
+               >
+                  <Text
+                     style={[
+                        styles.navText,
+                        activeTab === 'memory' && styles.navTextActive,
+                     ]}
+                  >
+                     Memory
                   </Text>
                </TouchableOpacity>
             </View>
@@ -382,5 +424,26 @@ const styles = StyleSheet.create({
    navTextActive: {
       color: '#007AFF',
       fontWeight: '600',
+   },
+   themeToggleButton: {
+      marginTop: 32,
+      position: 'absolute',
+      top: 16,
+      right: 16,
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderRadius: 20,
+      backgroundColor: '#111',
+      zIndex: 10,
+   },
+   themeToggleButtonRetro: {
+      marginTop: 32,
+      backgroundColor: '#f6b352',
+   },
+   themeToggleText: {
+      color: '#fff',
+      fontWeight: '700',
+      textTransform: 'uppercase',
+      fontSize: 12,
    },
 });
