@@ -1,119 +1,60 @@
-# Memory Orbit Command Center
+# ReCall
 
-This repository contains a cross-platform React Native (Expo) app paired with a Python/Flask backend that turns raw conversations into searchable “memories.” The system ingests videos, extracts faces and transcripts, enriches each contact with metadata (LinkedIn, highlights, etc.), and exposes the results through a mobile-friendly command center.
+ReCall is a lightweight memory assistant that turns raw conversations into something you can actually browse. We pair an Expo-based mobile app (“Home”, “Memory”, “Highlights”, “Upload”) with a Flask backend that handles video uploads, face recognition, transcript analysis, and highlight detection.
 
-> **Top-level features**
->
-> - **Orbit Command Center (Home)** – snapshot of the entire memory graph, quick actions, and highlights preview.
-> - **Memory tab** – list of everyone you’ve talked to, individual timelines, and a conversational AI for person-specific questions.
-> - **Highlights** – upcoming reminders/events detected from transcripts with quick complete/dismiss actions.
-> - **Upload flow** – capture or import new videos, run face + transcript analysis, and enroll new contacts automatically.
+![Pitch Slide](docs/images/pitch-slide.png)
 
-## Tech Stack
+## Quick Tour
 
-| Layer       | Technologies                                                                                                  |
-| ----------- | ------------------------------------------------------------------------------------------------------------- |
-| Frontend    | React Native (Expo), React 19, `expo-linear-gradient`, Safe Area Context, Axios                               |
-| Backend     | Python 3.10+, Flask, `insightface`, `opencv-python`, `moviepy`, `face_recognition`, Google Speech/Gemini APIs |
-| Storage     | Local `backend/conversations/*.json` for transcripts & highlights, `backend/faces_db/` for enrolled faces     |
-| Cloud APIs  | Google Gemini (highlights + summaries), Google Speech-to-Text, AWS (S3 credentials for asset access)          |
+- **Home** – a quick at-a-glance of the constellation of people you've talked to, highlights coming up, and shortcuts to upload or browse memories.
+- **Memory** – every person, their latest transcript, and a scoped “Ask AI” section that only references their conversations.
+- **Highlights** – a short list of reminders (birthdays, next steps, etc.) you can complete or dismiss with a single tap.
+- **Upload** – drop in a new video, we do the rest (faces, transcripts, and linking to the right person).
 
-## Repository Layout
-
-```
-├── backend/
-│   ├── app.py                 # Flask API entry point
-│   ├── requirements.txt       # Backend Python deps
-│   ├── analyzers/             # Video/face/transcript analyzers
-│   ├── conversations/         # Per-person JSON memories
-│   ├── faces_db/              # Enrolled face crops
-│   └── services/              # Highlight + enrichment helpers
-├── frontend/
-│   ├── App.js                 # Expo root
-│   ├── config.js              # BASE_URL for API calls
-│   └── screens/               # Home, People, Upload, Highlights, Conversation
-├── LICENSE
-└── README.md
-```
-
-## Prerequisites
-
-- **Node.js 18+** and npm/yarn for Expo.
-- **Python 3.10+** (`python3 --version`) with `pip`.
-- **Expo CLI** (`npm i -g expo-cli`) for local/device testing.
-- **FFmpeg** installed and available on `$PATH` for video preprocessing (required by `moviepy`).
-- Cloud credentials:
-  - `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` (used for file storage in the current pipeline).
-  - `GEMINI_API_KEY` for Google Gemini summarization/highlights.
-  - `BASE_URL` set to whatever host/port the backend runs on (defaults to `http://localhost:3000` for local dev).
-
-## Backend Setup
+## Running ReCall
 
 ```bash
+# Backend
 cd backend
-python -m venv .venv
-source .venv/bin/activate      # Windows: .venv\Scripts\activate
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env           # create your env, then fill in keys
-python app.py                  # starts Flask on port 3000
-```
+cp .env.example .env   # fill AWS/Gemini/BASE_URL
+python app.py
 
-`backend/.env` should define at least:
-
-```env
-AWS_ACCESS_KEY_ID=...
-AWS_SECRET_ACCESS_KEY=...
-AWS_REGION=us-east-1
-GEMINI_API_KEY=...
-BASE_URL=http://localhost:3000
-```
-
-### Key API Routes
-
-| Method | Route                               | Description                                       |
-| ------ | ----------------------------------- | ------------------------------------------------- |
-| GET    | `/api/people`                       | List enrolled contacts + avatars/headlines        |
-| GET    | `/api/conversation/<name>`          | Retrieve full transcript history for a person     |
-| POST   | `/api/people/assistant`             | Ask AI questions scoped to a specific person      |
-| POST   | `/api/process`                      | Upload a video (form-data) for analysis           |
-| GET    | `/api/highlights`                   | Upcoming highlights (birthdays, follow-ups, etc.) |
-| PATCH  | `/api/highlights/<highlight_id>`    | Complete/dismiss a highlight                      |
-
-## Frontend Setup
-
-```bash
+# Frontend
 cd frontend
 npm install
-cp config.example.js config.js   # ensure BASE_URL points to backend
+cp config.example.js config.js   # set BASE_URL to your backend
 npm run start                    # expo start
 ```
 
-Open the Expo QR code in the Expo Go app (iOS/Android) or press `i`/`a` in the CLI to launch the simulator.
+Use Expo Go (or a simulator) to open the QR code shown in the terminal.
 
-## Typical Workflow
+## Why This Is Ethical
 
-1. **Enroll Faces / Upload Video** – use the Upload tab to add new footage. Backend detects faces & transcripts, then stores JSON in `backend/conversations/<name>.json`.
-2. **Review Orbit** – Home > “Orbit Radar” shows the constellation of everyone you’ve talked to. Tap any face to jump straight into the memory view.
-3. **Highlights** – Home preview or Highlights tab surfaces upcoming birthdays/events extracted from transcripts. Complete or dismiss them with a tap.
-4. **Person Memory** – The Memory tab or highlights/orbit deep links open `ConversationScreen`, showing their avatar, timeline, and a person-specific “Ask AI” modal (scoped to that individual).
+We spent time documenting how we capture and use memories responsibly. You can read that outline here:
+[Ethical Use of ReCall](https://docs.google.com/document/d/1syaJEmcLC6CF5mZdOM4GjW2F5q3-6_wzQd5EjInG5Zk/edit?usp=sharing)
 
-## Useful Commands
+In short: recordings must be consensual, we keep memories on your device/back-end only, and every highlight is meant to help with relationship follow‑ups—not surveillance.
 
-| Task                        | Command(s)                                      |
-| --------------------------- | ---------------------------------------------- |
-| Install backend deps        | `pip install -r backend/requirements.txt`       |
-| Run Flask API               | `python backend/app.py`                         |
-| Install frontend deps       | `cd frontend && npm install`                    |
-| Start Expo                  | `cd frontend && npm run start`                  |
-| iOS simulator               | (after `expo start`) press `i`                  |
-| Android emulator            | (after `expo start`) press `a`                  |
+## Project Structure
 
-## Notes & Troubleshooting
+```
+backend/      # Flask API, analyzers, services (highlights, LinkedIn enrichment, etc.)
+frontend/     # Expo app with Home, Memory, Highlights, Upload screens
+docs/images/  # Pitch deck snippets and screenshots
+```
 
-- **Orbit nodes off-screen?** Make sure your BASE_URL returns the same width/height data—node placement adapts to device width, so Expo reload helps when switching devices.
-- **Highlights missing avatars?** `/api/people` must be reachable so the Highlights screen can preload images; otherwise it falls back to initials.
-- **Large uploads** – `moviepy` and `insightface` can be heavy; ensure your backend machine has enough CPU and disk space.
+## Tech Grab Bag
 
-## License
+- **Frontend** – React Native 0.81 (Expo 54), Axios, Safe Area Context.
+- **Backend** – Flask, InsightFace, OpenCV, MoviePy, Google Speech + Gemini APIs.
+- **Storage** – JSON conversation files (`backend/conversations`), cropped faces (`backend/faces_db`).
 
-This project is licensed under the MIT License – see the [LICENSE](LICENSE) file for details.
+## What’s Next
+
+- Ship a secure cloud sync (currently files live on the host you deploy).
+- Add inline editing so you can correct transcripts without re-uploading.
+- Polish the command center with more “morning digest” style insights.
+
+Have fun with ReCall—and let us know if you drop it into a hackathon booth. 😊
