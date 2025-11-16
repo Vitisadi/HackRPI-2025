@@ -239,13 +239,14 @@ def ask_gemini(sentences):
     - If absolutely no info: use or "Contact" or "Friend"
 
     5. Determine if there's **LinkedIn potential**:
-    - Set "has_linkedin_potential" to true if the conversation mentions **at least ONE** of the following:
-      * Any company or employer name (e.g., "Google", "Microsoft", "Tesla", "a startup", "my company")
-      * Any school, university, or educational institution (e.g., "MIT", "Stanford", "high school", "college")
-      * Any job title or professional role (e.g., "engineer", "manager", "student", "developer", "CEO", "intern")
-      * Any career-related information (e.g., "I work at", "I study", "my job", "my major", "my team")
-    - Set to false ONLY if the conversation is purely casual/personal with absolutely zero professional, educational, or career context
-    - Be generous: even one mention of work, school, or professional activity should set this to true
+    - Set "has_linkedin_potential" to true ONLY if the conversation mentions **at least ONE** of the following:
+      * Any specific company or employer name (e.g., "Google", "Microsoft", "Tesla", "New York Life")
+      * Any specific school, university, or educational institution name (e.g., "MIT", "Stanford", "RPI", "Harvard")
+    - Set to false if:
+      * Only generic mentions like "work", "job", "school", "college" without specific names
+      * Purely casual/personal conversations
+      * No company or school names are mentioned
+    - Be strict: LinkedIn search requires actual organization names to work
 
     Output **pure JSON only** in this format:
 
