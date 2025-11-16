@@ -155,14 +155,25 @@ export default function App() {
       <SafeAreaView style={{ flex: 1 }}>
          <View style={styles.container}>
             {activeConversation ? (
-               <ConversationScreen
-                  name={activeConversation.name}
-                  avatarUrl={activeConversation.avatarUrl}
-                  headline={activeConversation.headline}
-                  highlightTimestamp={activeConversation.highlightTimestamp}
-                  highlightIndex={activeConversation.highlightIndex}
-                  onBack={() => setActiveConversation(null)}
-               />
+               isRetroTheme ? (
+                  <RetroConversationScreen
+                     name={activeConversation.name}
+                     avatarUrl={activeConversation.avatarUrl}
+                     headline={activeConversation.headline}
+                     highlightTimestamp={activeConversation.highlightTimestamp}
+                     highlightIndex={activeConversation.highlightIndex}
+                     onBack={() => setActiveConversation(null)}
+                  />
+               ) : (
+                  <ConversationScreen
+                     name={activeConversation.name}
+                     avatarUrl={activeConversation.avatarUrl}
+                     headline={activeConversation.headline}
+                     highlightTimestamp={activeConversation.highlightTimestamp}
+                     highlightIndex={activeConversation.highlightIndex}
+                     onBack={() => setActiveConversation(null)}
+                  />
+               )
             ) : (
                <>
                   {activeTab === 'home' &&
