@@ -28,6 +28,7 @@ export default function App() {
    const [hasAcceptedAgreement, setHasAcceptedAgreement] = useState(false);
    const [isCheckingAgreement, setIsCheckingAgreement] = useState(true);
    const [agreementChecked, setAgreementChecked] = useState(false);
+   const [isRetroTheme, setIsRetroTheme] = useState(false);
 
    useEffect(() => {
       const checkAgreementStatus = async () => {
@@ -83,6 +84,10 @@ export default function App() {
       setActiveConversation(null);
       setActiveTab(tab);
    }, []);
+
+   const handleToggleTheme = () => {
+      setIsRetroTheme((prev) => !prev);
+   };
 
    if (isCheckingAgreement) {
       return (
@@ -160,24 +165,56 @@ export default function App() {
                />
             ) : (
                <>
-                  {activeTab === 'home' && (
-                     <HomeScreen
-                        onOpenConversation={handleOpenConversation}
-                        onNavigateTab={handleNavigateTab}
-                     />
-                  )}
-                  {activeTab === 'upload' && <UploadScreen />}
-                  {activeTab === 'memory' && (
-                     <PeopleScreen
-                        onOpenConversation={handleOpenConversation}
-                     />
-                  )}
-                  {activeTab === 'highlights' && (
-                     <HighlightsScreen
-                        onOpenConversation={handleOpenConversation}
-                     />
-                  )}
+                  {activeTab === 'home' &&
+                     (isRetroTheme ? (
+                        <RetroHomeScreen
+                           onOpenConversation={handleOpenConversation}
+                           onNavigateTab={handleNavigateTab}
+                        />
+                     ) : (
+                        <HomeScreen
+                           onOpenConversation={handleOpenConversation}
+                           onNavigateTab={handleNavigateTab}
+                        />
+                     ))}
+                  {activeTab === 'upload' &&
+                     (isRetroTheme ? <RetroUploadScreen /> : <UploadScreen />)}
+                  {activeTab === 'memory' &&
+                     (isRetroTheme ? (
+                        <RetroPeopleScreen
+                           onOpenConversation={handleOpenConversation}
+                        />
+                     ) : (
+                        <PeopleScreen
+                           onOpenConversation={handleOpenConversation}
+                        />
+                     ))}
+                  {activeTab === 'highlights' &&
+                     (isRetroTheme ? (
+                        <RetroHighlightsScreen
+                           onOpenConversation={handleOpenConversation}
+                        />
+                     ) : (
+                        <HighlightsScreen
+                           onOpenConversation={handleOpenConversation}
+                        />
+                     ))}
                </>
+            )}
+
+            {!activeConversation && activeTab === 'home' && (
+               <TouchableOpacity
+                  style={[
+                     styles.themeToggleButton,
+                     isRetroTheme && styles.themeToggleButtonRetro,
+                  ]}
+                  onPress={handleToggleTheme}
+                  accessibilityRole='button'
+               >
+                  <Text style={styles.themeToggleText}>
+                     {isRetroTheme ? 'Switch to Main' : 'Switch to Retro'}
+                  </Text>
+               </TouchableOpacity>
             )}
 
             {/* Bottom Navigation */}
@@ -387,5 +424,26 @@ const styles = StyleSheet.create({
    navTextActive: {
       color: '#007AFF',
       fontWeight: '600',
+   },
+   themeToggleButton: {
+      marginTop: 32,
+      position: 'absolute',
+      top: 16,
+      right: 16,
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderRadius: 20,
+      backgroundColor: '#111',
+      zIndex: 10,
+   },
+   themeToggleButtonRetro: {
+      marginTop: 32,
+      backgroundColor: '#f6b352',
+   },
+   themeToggleText: {
+      color: '#fff',
+      fontWeight: '700',
+      textTransform: 'uppercase',
+      fontSize: 12,
    },
 });
