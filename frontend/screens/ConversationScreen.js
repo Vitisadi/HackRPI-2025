@@ -8,6 +8,7 @@ import {
    ActivityIndicator,
    Platform,
    Image,
+   Linking,
 } from 'react-native';
 import axios from 'axios';
 import { BASE_URL } from '../config';
@@ -24,6 +25,7 @@ export default function ConversationScreen({
    const [error, setError] = useState(null);
    const [data, setData] = useState([]);
    const [conversationHeadline, setConversationHeadline] = useState('');
+   const [linkedinUrl, setLinkedinUrl] = useState('');
    const listRef = useRef(null);
 
    const displayHeadline = profileHeadline || conversationHeadline;
@@ -46,11 +48,16 @@ export default function ConversationScreen({
             // API returns { name, conversation } or 404
             const conversations = res.data.conversation || [];
             setData(conversations);
-            // Get headline from the most recent entry
+            // Get headline and LinkedIn URL from the most recent entry
             if (conversations.length > 0) {
                for (let i = conversations.length - 1; i >= 0; i--) {
                   if (conversations[i].headline) {
                      setConversationHeadline(conversations[i].headline);
+                  }
+                  if (conversations[i].linkedin_url) {
+                     setLinkedinUrl(conversations[i].linkedin_url);
+                  }
+                  if (conversations[i].headline || conversations[i].linkedin_url) {
                      break;
                   }
                }
@@ -194,6 +201,14 @@ export default function ConversationScreen({
                {displayHeadline ? (
                   <Text style={styles.profileHeadline}>{displayHeadline}</Text>
                ) : null}
+               {linkedinUrl ? (
+                  <TouchableOpacity
+                     onPress={() => Linking.openURL(linkedinUrl)}
+                     style={styles.linkedinLinkWrapper}
+                  >
+                     <Text style={styles.linkedinLink}>View LinkedIn Profile</Text>
+                  </TouchableOpacity>
+               ) : null}
             </View>
          </View>
 
@@ -308,6 +323,16 @@ const styles = StyleSheet.create({
       color: '#666',
       marginTop: 4,
       textAlign: 'center',
+      fontFamily: baseMono,
+   },
+   linkedinLinkWrapper: {
+      marginTop: 8,
+   },
+   linkedinLink: {
+      fontSize: 13,
+      color: '#0077b5',
+      textAlign: 'center',
+      textDecorationLine: 'underline',
       fontFamily: baseMono,
    },
    listContent: {
