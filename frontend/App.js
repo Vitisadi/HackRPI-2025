@@ -153,7 +153,11 @@ export default function App() {
                 />
             ) : (
                <>
-                  {activeTab === 'home' && <HomeScreen />}
+                  {activeTab === 'home' && (
+                     <HomeScreen
+                        onOpenConversation={handleOpenConversation}
+                     />
+                  )}
                   {activeTab === 'upload' && <UploadScreen />}
                   {activeTab === 'memory' && (
                      <PeopleScreen
