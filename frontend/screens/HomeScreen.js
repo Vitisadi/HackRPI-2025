@@ -252,13 +252,16 @@ export default function HomeScreen({ onOpenConversation }) {
                            },
                         ]}
                      >
-                        <TouchableOpacity
-                           activeOpacity={0.85}
-                           onPress={() =>
-                              onOpenConversation &&
-                              node?.name &&
-                              onOpenConversation(node.name)
-                           }
+                         <TouchableOpacity
+                            activeOpacity={0.85}
+                            onPress={() => {
+                               if (!onOpenConversation || !node?.name) return;
+                               onOpenConversation({
+                                  name: node.name,
+                                  avatarUrl: node.image_url,
+                                  headline: node.headline,
+                               });
+                            }}
                            style={[
                               styles.nodeTouchable,
                               {

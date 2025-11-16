@@ -54,28 +54,23 @@ export default function App() {
 
    const handleOpenConversation = (payload) => {
       if (!payload) return;
-      if (typeof payload === 'string') {
-         setActiveConversation({ name: payload });
-         return;
-      }
 
-      if (payload && typeof payload === 'object') {
-         const {
-            name,
-            highlightTimestamp,
-            highlightIndex,
-            avatarUrl,
-            headline,
-         } = payload;
-         if (!name) return;
-         setActiveConversation({
-            name,
-            highlightTimestamp,
-            highlightIndex,
-            avatarUrl,
-            headline,
-         });
-      }
+      const normalizedPayload =
+         typeof payload === 'string' ? { name: payload } : payload;
+      if (!normalizedPayload || typeof normalizedPayload !== 'object') return;
+
+      const { name, highlightTimestamp, highlightIndex, avatarUrl, headline } =
+         normalizedPayload;
+      if (!name) return;
+
+      setActiveConversation({
+         name,
+         highlightTimestamp,
+         highlightIndex,
+         avatarUrl,
+         headline,
+      });
+      setActiveTab('memory');
    };
 
    if (isCheckingAgreement) {
